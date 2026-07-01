@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FakeGPT | Offline Rule-Based Chatbot</title>
+  <meta name="description" content="FakeGPT は、ネットワーク不要のルールベースAI風チャットボット。HTMLとJavaScriptだけで動くデモです。" />
+  <style>
+    :root{
+      --bg: #071018;
+      --bg2: #0c1722;
+      --card: rgba(255,255,255,.05);
+      --card-border: rgba(255,255,255,.10);
+      --text: #e7eef8;
+      --muted: #9bb0c6;
+      --accent: #56d4ff;
+      --accent2: #8b7dff;
+      --good: #75f2b0;
+      --shadow: 0 20px 60px rgba(0,0,0,.35);
+      --radius: 24px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(86,212,255,.16), transparent 30%),
+        radial-gradient(circle at top right, rgba(139,125,255,.14), transparent 28%),
+        linear-gradient(180deg, var(--bg), var(--bg2));
+      min-height: 100vh;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    .container {
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      backdrop-filter: blur(18px);
+      background: rgba(7,16,24,.62);
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 0;
+      gap: 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 800;
+      letter-spacing: .2px;
+    }
+
+    .logo {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      background:
+        linear-gradient(135deg, rgba(86,212,255,.95), rgba(139,125,255,.95));
+      box-shadow: 0 10px 30px rgba(86,212,255,.18);
+      display: grid;
+      place-items: center;
+      color: #031018;
+      font-size: 22px;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 18px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .nav-links a:hover { color: var(--text); }
+
+    .nav-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, rgba(86,212,255,.16), rgba(139,125,255,.16));
+      border: 1px solid rgba(255,255,255,.10);
+      box-shadow: var(--shadow);
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .hero {
+      padding: 88px 0 36px;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap: 28px;
+      align-items: center;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.08);
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(42px, 6vw, 74px);
+      line-height: 1.02;
+      letter-spacing: -0.05em;
+    }
+
+    .gradient {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .lead {
+      margin: 18px 0 0;
+      font-size: clamp(16px, 2vw, 19px);
+      line-height: 1.7;
+      color: var(--muted);
+      max-width: 60ch;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-top: 28px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 14px 20px;
+      border-radius: 999px;
+      font-weight: 700;
+      border: 1px solid transparent;
+      transition: transform .18s ease, border-color .18s ease, background .18s ease;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .btn:hover { transform: translateY(-1px); }
+
+    .btn-primary {
+      color: #041018;
+      background: linear-gradient(135deg, var(--accent), #9ff0ff);
+      box-shadow: 0 18px 40px rgba(86,212,255,.18);
+    }
+
+    .btn-secondary {
+      color: var(--text);
+      background: rgba(255,255,255,.04);
+      border-color: rgba(255,255,255,.10);
+    }
+
+    .terminal {
+      position: relative;
+      border-radius: var(--radius);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.03));
+      border: 1px solid rgba(255,255,255,.10);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      min-height: 420px;
+    }
+
+    .terminal-top {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 16px;
+      background: rgba(0,0,0,.18);
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.22);
+    }
+
+    .dot.red { background: #ff6b6b; }
+    .dot.yellow { background: #ffcf5b; }
+    .dot.green { background: #71e7a1; }
+
+    .terminal-body {
+      padding: 20px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 14px;
+      line-height: 1.7;
+      color: #d7e5ff;
+    }
+
+    .prompt { color: var(--good); }
+    .line { margin: 0 0 10px; }
+    .dim { color: #91a5bf; }
+    .cursor {
+      display: inline-block;
+      width: 8px;
+      height: 16px;
+      background: var(--accent);
+      vertical-align: -3px;
+      animation: blink 1s step-end infinite;
+    }
+
+    @keyframes blink {
+      50% { opacity: 0; }
+    }
+
+    .section {
+      padding: 42px 0;
+    }
+
+    .section-title {
+      font-size: clamp(26px, 3vw, 38px);
+      margin: 0 0 10px;
+      letter-spacing: -0.04em;
+    }
+
+    .section-subtitle {
+      margin: 0 0 26px;
+      color: var(--muted);
+      line-height: 1.7;
+      max-width: 70ch;
+    }
+
+    .grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    .features {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 22px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.18);
+    }
+
+    .icon {
+      width: 46px;
+      height: 46px;
+      border-radius: 16px;
+      display: grid;
+      place-items: center;
+      margin-bottom: 14px;
+      background: linear-gradient(135deg, rgba(86,212,255,.18), rgba(139,125,255,.18));
+      border: 1px solid rgba(255,255,255,.08);
+      font-size: 22px;
+    }
+
+    .card h3 {
+      margin: 0 0 8px;
+      font-size: 18px;
+    }
+
+    .card p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .split {
+      display: grid;
+      grid-template-columns: .95fr 1.05fr;
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    .list {
+      display: grid;
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    .list-item {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      padding: 14px 16px;
+      border-radius: 18px;
+      background: rgba(255,255,255,.035);
+      border: 1px solid rgba(255,255,255,.08);
+    }
+
+    .check {
+      flex: 0 0 auto;
+      width: 24px;
+      height: 24px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      background: rgba(117,242,176,.14);
+      color: var(--good);
+      font-weight: 900;
+      margin-top: 1px;
+    }
+
+    .list-item strong { display: block; margin-bottom: 4px; }
+    .list-item span { color: var(--muted); line-height: 1.6; }
+
+    .steps {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .step-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #041018;
+      font-weight: 800;
+      margin-bottom: 14px;
+    }
+
+    .disclaimer {
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: var(--radius);
+      padding: 24px;
+    }
+
+    .footer {
+      padding: 40px 0 60px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.8;
+    }
+
+    .footer-inner {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      flex-wrap: wrap;
+      border-top: 1px solid rgba(255,255,255,.08);
+      padding-top: 20px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.08);
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 14px;
+      margin-right: 8px;
+    }
+
+    @media (max-width: 900px) {
+      .hero-grid,
+      .split,
+      .features,
+      .steps {
+        grid-template-columns: 1fr;
+      }
+      .nav-links {
+        display: none;
+      }
+      .hero {
+        padding-top: 52px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container nav">
+      <div class="brand">
+        <div class="logo">F</div>
+        <div>
+          <div>FakeGPT</div>
+          <div style="font-size:12px;color:var(--muted);font-weight:500;">Offline Rule-Based Chatbot</div>
+        </div>
+      </div>
+
+      <nav class="nav-links" aria-label="section links">
+        <a href="#features">Features</a>
+        <a href="#how">How it works</a>
+        <a href="#disclaimer">Disclaimer</a>
+      </nav>
+
+      <a class="nav-cta" href="#demo">Try the demo →</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" id="demo">
+      <div class="container hero-grid">
+        <div>
+          <div class="badge">⚡ No API · No network · No machine learning</div>
+          <h1>
+            A <span class="gradient">ChatGPT-like</span><br />
+            experience without the cloud
+          </h1>
+          <p class="lead">
+            FakeGPT is a polished offline chatbot UI built with plain HTML, CSS, and JavaScript.
+            It responds with rule-based logic, keyword matching, and just enough theatricality to fool a tired brain.
+          </p>
+
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="#features">See features</a>
+            <a class="btn btn-secondary" href="#how">How it works</a>
+          </div>
+
+          <div>
+            <span class="pill">HTML</span>
+            <span class="pill">CSS</span>
+            <span class="pill">Vanilla JavaScript</span>
+            <span class="pill">100% offline</span>
+          </div>
+        </div>
+
+        <div class="terminal" aria-label="terminal preview">
+          <div class="terminal-top">
+            <span class="dot red"></span>
+            <span class="dot yellow"></span>
+            <span class="dot green"></span>
+            <span style="margin-left:8px;color:var(--muted);font-size:13px;">FakeGPT / local session</span>
+          </div>
+          <div class="terminal-body">
+            <p class="line"><span class="prompt">You:</span> こんにちは</p>
+            <p class="line"><span class="prompt">FakeGPT:</span> こんにちは。ローカルAIです。まだGPUはありません。</p>
+            <p class="line"><span class="prompt">You:</span> 覚えて</p>
+            <p class="line"><span class="prompt">FakeGPT:</span> 記憶しました（ローカル配列に）</p>
+            <p class="line"><span class="prompt">You:</span> 思い出して</p>
+            <p class="line"><span class="prompt">FakeGPT:</span> 最近の発言を整理中...<span class="cursor"></span></p>
+            <p class="line dim" style="margin-top:18px;">Simulated thinking, typing animation, and session memory.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="features">
+      <div class="container">
+        <h2 class="section-title">Built for the illusion of intelligence</h2>
+        <p class="section-subtitle">
+          FakeGPT focuses on presentation first. The responses are simple, but the interface feels modern enough to make the keyword matcher look suspiciously confident.
+        </p>
+
+        <div class="grid features">
+          <article class="card">
+            <div class="icon">💬</div>
+            <h3>ChatGPT-style UI</h3>
+            <p>Minimal, dark, clean, and easy to extend. It feels like a product instead of a classroom exercise wearing a hoodie.</p>
+          </article>
+
+          <article class="card">
+            <div class="icon">🧠</div>
+            <h3>Rule-based responses</h3>
+            <p>Keyword matching powers the conversation. No model download, no server, no drama, just structured pretending.</p>
+          </article>
+
+          <article class="card">
+            <div class="icon">⌨️</div>
+            <h3>Typing animation</h3>
+            <p>A small delay and a typing effect make the bot feel active, even when it is mostly reading from a tiny script.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="how">
+      <div class="container split">
+        <div class="card">
+          <h2 class="section-title" style="margin-bottom:12px;">How it works</h2>
+          <p class="section-subtitle" style="margin-bottom:0;">
+            The project is intentionally simple. It stores session messages in memory, checks user input for keywords, and returns a matching response or a fallback message.
+          </p>
+
+          <div class="list" style="margin-top:18px;">
+            <div class="list-item">
+              <div class="check">1</div>
+              <div>
+                <strong>Input arrives</strong>
+                <span>The user types a message into the chat box. A deeply advanced human ritual.</span>
+              </div>
+            </div>
+            <div class="list-item">
+              <div class="check">2</div>
+              <div>
+                <strong>Rules are checked</strong>
+                <span>The script searches for words like “こんにちは”, “名前”, “覚えて”, or “思い出して”.</span>
+              </div>
+            </div>
+            <div class="list-item">
+              <div class="check">3</div>
+              <div>
+                <strong>Response appears</strong>
+                <span>A predefined answer is displayed with a typing effect so it feels less like a spreadsheet.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2 class="section-title" style="margin-bottom:12px;">What you get</h2>
+          <p class="section-subtitle" style="margin-bottom:18px;">
+            A landing page that sells the idea, not the fantasy. Handy for demos, portfolios, and projects that need to look clever before they actually become clever.
+          </p>
+
+          <div class="grid" style="gap:14px;">
+            <div class="list-item">
+              <div class="check">✓</div>
+              <div>
+                <strong>Offline only</strong>
+                <span>Works entirely in the browser, no API key required.</span>
+              </div>
+            </div>
+            <div class="list-item">
+              <div class="check">✓</div>
+              <div>
+                <strong>Fast to run</strong>
+                <span>One HTML file. Open it and it works.</span>
+              </div>
+            </div>
+            <div class="list-item">
+              <div class="check">✓</div>
+              <div>
+                <strong>Easy to customize</strong>
+                <span>Swap colors, rewrite text, add more rules, or attach actual intelligence later if civilization permits.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <h2 class="section-title">Launch flow</h2>
+        <p class="section-subtitle">
+          A simple three-step structure works well for a landing page. Humans do love a product journey, even when the product is basically a polite switch statement.
+        </p>
+
+        <div class="grid steps">
+          <article class="card">
+            <div class="step-num">01</div>
+            <h3>Open the page</h3>
+            <p>Start instantly in the browser. No install, no auth, no waiting room for a JavaScript hobby project.</p>
+          </article>
+
+          <article class="card">
+            <div class="step-num">02</div>
+            <h3>Type a message</h3>
+            <p>Ask about greetings, memory, or code. The bot responds with a keyword-driven answer and a little confidence.</p>
+          </article>
+
+          <article class="card">
+            <div class="step-num">03</div>
+            <h3>Enjoy the illusion</h3>
+            <p>The interface handles the theater. The logic handles the basics. Together they form a respectable fake.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="disclaimer">
+      <div class="container">
+        <div class="disclaimer">
+          <h2 class="section-title" style="margin-bottom:10px;">Disclaimer</h2>
+          <p class="section-subtitle" style="margin-bottom:0;">
+            FakeGPT is not affiliated with OpenAI. It does not use machine learning, internet access, or a real language model.
+            It is a browser demo built to look and feel like a modern AI chat product while remaining completely offline.
+          </p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div>
+        <strong style="color:var(--text);">FakeGPT</strong><br />
+        Offline rule-based chatbot landing page.
+      </div>
+      <div>
+        Built with HTML, CSS, and vanilla JavaScript.<br />
+        No frameworks were harmed in the making of this project.
+      </div>
+    </div>
+  </footer>
+</body>
+</html>
