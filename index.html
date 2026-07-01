@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>FakeChatGPT Pro</title>
+<style>
+body {
+    margin: 0;
+    background: #0b0f14;
+    color: #e6e6e6;
+    font-family: system-ui, sans-serif;
+    display: flex;
+    height: 100vh;
+}
+
+#app {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+#chat {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.msg {
+    margin: 10px 0;
+    line-height: 1.4;
+    white-space: pre-wrap;
+}
+
+.user { color: #4fc3f7; }
+.ai { color: #a5d6a7; }
+
+.small {
+    opacity: 0.6;
+    font-size: 12px;
+}
+
+#inputBar {
+    display: flex;
+    border-top: 1px solid #222;
+}
+
+input {
+    flex: 1;
+    padding: 14px;
+    border: none;
+    outline: none;
+    font-size: 16px;
+    background: #111823;
+    color: white;
+}
+
+button {
+    padding: 14px 18px;
+    border: none;
+    background: #4fc3f7;
+    cursor: pointer;
+}
+</style>
+</head>
+<body>
+
+<div id="app">
+    <div id="chat"></div>
+
+    <div id="inputBar">
+        <input id="input" placeholder="メッセージ..." />
+        <button onclick="send()">送信</button>
+    </div>
+</div>
+
+<script>
+const chat = document.getElementById("chat");
+let memory = [];
+
+function add(text, cls) {
+    const div = document.createElement("div");
+    div.className = "msg " + cls;
+    div.textContent = text;
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+    return div;
+}
+
+// 擬似“思考ログ”
+function thinkingBubble() {
+    const div = document.createElement("div");
+    div.className = "msg ai small";
+    div.textContent = "AI: thinking...";
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+    return div;
+}
+
+function ai(msg) {
+    memory.push(msg);
+
+    msg = msg.toLowerCase();
+
+    if (msg.includes("こんにちは")) {
+        return "こんにちは。ローカルAIです。まだGPUはありません。";
+    }
+
+    if (msg.includes("名前")) {
+        return "FakeChatGPT Pro（それっぽさ強化版）です。";
+    }
+
+    if (msg.includes("覚えて")) {
+        return "記憶しました（ローカル配列に）";
+    }
+
+    if (msg.includes("思い出して")) {
+        return "最近の発言: " + memory.slice(-3).join(" / ");
+    }
+
+    if (msg.includes("コード")) {
+        return "コード？いいですよ（動くとは言ってない）\n\nconsole.log('hello world');";
+    }
+
+    const pool = [
+        "その入力は曖昧すぎて解析不能です",
+        "ローカル辞書に一致する項目なし",
+        "処理完了（意味は理解していない）",
+        "人間の意図推定に失敗しました"
+    ];
+
+    return pool[Math.floor(Math.random() * pool.length)];
+}
+
+function send() {
+    const input = document.getElementById("input");
+    const text = input.value.trim();
+    if (!text) return;
+
+    add("You: " + text, "user");
+
+    const thinking = thinkingBubble();
+
+    setTimeout(() => {
+        thinking.remove();
+        typeWriter("AI: " + ai(text));
+    }, 500);
+
+    input.value = "";
+}
+
+// タイピング演出
+function typeWriter(text) {
+    const div = document.createElement("div");
+    div.className = "msg ai";
+    chat.appendChild(div);
+
+    let i = 0;
+    const interval = setInterval(() => {
+        div.textContent += text[i];
+        i++;
+        chat.scrollTop = chat.scrollHeight;
+
+        if (i >= text.length) clearInterval(interval);
+    }, 15);
+}
+
+document.getElementById("input").addEventListener("keydown", e => {
+    if (e.key === "Enter") send();
+});
+</script>
+
+</body>
+</html>
