@@ -2,95 +2,81 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>FakeChatGPT Pro</title>
-<style>
-body {
-    margin: 0;
-    background: #0b0f14;
-    color: #e6e6e6;
-    font-family: system-ui, sans-serif;
-    display: flex;
-    height: 100vh;
-}
-
-#app {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-}
-
-#chat {
-    flex: 1;
-    padding: 20px;
-    overflow-y: auto;
-}
-
-.msg {
-    margin: 10px 0;
-    line-height: 1.4;
-    white-space: pre-wrap;
-}
-
-.user { color: #4fc3f7; }
-.ai { color: #a5d6a7; }
-
-.small {
-    opacity: 0.6;
-    font-size: 12px;
-}
-
-#inputBar {
-    display: flex;
-    border-top: 1px solid #222;
-}
-
-input {
-    flex: 1;
-    padding: 14px;
-    border: none;
-    outline: none;
-    font-size: 16px;
-    background: #111823;
-    color: white;
-}
-
-button {
-    padding: 14px 18px;
-    border: none;
-    background: #4fc3f7;
-    cursor: pointer;
-}
-</style>
+<title>Chat UI Clone</title>
+<script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
 
-<div id="app">
-    <div id="chat"></div>
+<body class="bg-[#0b0f14] text-gray-100 h-screen flex">
 
-    <div id="inputBar">
-        <input id="input" placeholder="メッセージ..." />
-        <button onclick="send()">送信</button>
-    </div>
+<!-- Sidebar -->
+<div class="w-64 bg-[#0a0f1a] border-r border-gray-800 flex flex-col">
+  <div class="p-4 font-bold text-white border-b border-gray-800">
+    FakeChatGPT
+  </div>
+
+  <button class="m-3 p-2 bg-sky-500 text-black rounded hover:bg-sky-400">
+    + New Chat
+  </button>
+
+  <div class="flex-1 overflow-y-auto text-sm p-2 space-y-2">
+    <div class="p-2 hover:bg-gray-800 rounded">今日の会話</div>
+    <div class="p-2 hover:bg-gray-800 rounded">コード相談</div>
+    <div class="p-2 hover:bg-gray-800 rounded">雑談ログ</div>
+  </div>
+</div>
+
+<!-- Main -->
+<div class="flex flex-col flex-1">
+
+  <!-- Header -->
+  <div class="h-12 border-b border-gray-800 flex items-center px-4">
+    <div class="font-semibold">Chat</div>
+  </div>
+
+  <!-- Chat -->
+  <div id="chat" class="flex-1 overflow-y-auto p-6 space-y-4"></div>
+
+  <!-- Input -->
+  <div class="border-t border-gray-800 p-3 flex gap-2">
+    <input id="input"
+      class="flex-1 bg-[#111823] p-3 rounded outline-none text-white"
+      placeholder="メッセージを送信..." />
+
+    <button onclick="send()"
+      class="px-4 bg-green-400 text-black rounded hover:bg-green-300">
+      送信
+    </button>
+  </div>
+
 </div>
 
 <script>
 const chat = document.getElementById("chat");
 let memory = [];
 
-function add(text, cls) {
-    const div = document.createElement("div");
-    div.className = "msg " + cls;
-    div.textContent = text;
-    chat.appendChild(div);
+function bubble(text, role) {
+    const wrap = document.createElement("div");
+    wrap.className = "flex " + (role === "user" ? "justify-end" : "justify-start");
+
+    const bubble = document.createElement("div");
+
+    bubble.className =
+        "max-w-[70%] px-4 py-2 rounded-2xl whitespace-pre-wrap text-sm leading-relaxed " +
+        (role === "user"
+            ? "bg-sky-500 text-black rounded-br-sm"
+            : "bg-gray-800 text-gray-100 rounded-bl-sm");
+
+    bubble.textContent = text;
+
+    wrap.appendChild(bubble);
+    chat.appendChild(wrap);
     chat.scrollTop = chat.scrollHeight;
-    return div;
 }
 
-// 擬似“思考ログ”
-function thinkingBubble() {
+function typing() {
     const div = document.createElement("div");
-    div.className = "msg ai small";
-    div.textContent = "AI: thinking...";
+    div.className = "text-gray-500 text-sm";
+    div.textContent = "AI is thinking...";
     chat.appendChild(div);
     chat.scrollTop = chat.scrollHeight;
     return div;
@@ -98,37 +84,29 @@ function thinkingBubble() {
 
 function ai(msg) {
     memory.push(msg);
-
     msg = msg.toLowerCase();
 
-    if (msg.includes("こんにちは")) {
-        return "こんにちは。ローカルAIです。まだGPUはありません。";
-    }
-
-    if (msg.includes("名前")) {
-        return "FakeChatGPT Pro（それっぽさ強化版）です。";
-    }
-
-    if (msg.includes("覚えて")) {
-        return "記憶しました（ローカル配列に）";
-    }
-
-    if (msg.includes("思い出して")) {
-        return "最近の発言: " + memory.slice(-3).join(" / ");
-    }
-
-    if (msg.includes("コード")) {
-        return "コード？いいですよ（動くとは言ってない）\n\nconsole.log('hello world');";
-    }
+    if (msg.includes("こんにちは")) return "こんにちは。UIだけはそれっぽいAIです。";
+    if (msg.includes("名前")) return "FakeChatGPT（見た目詐欺モデル）です。";
+    if (msg.includes("覚えて")) return "ローカルメモリに保存しました（RAM上）";
+    if (msg.includes("思い出して")) return "最近: " + memory.slice(-3).join(" / ");
+    if (msg.includes("コード")) return "```js\nconsole.log('hello world');\n```";
 
     const pool = [
-        "その入力は曖昧すぎて解析不能です",
-        "ローカル辞書に一致する項目なし",
-        "処理完了（意味は理解していない）",
-        "人間の意図推定に失敗しました"
+        "その入力は曖昧すぎて解釈できません",
+        "意味構造が未定義です",
+        "人間の意図推定に失敗しました",
+        "ローカルモデルは沈黙しています"
     ];
 
     return pool[Math.floor(Math.random() * pool.length)];
+}
+
+// very small markdown (code block only)
+function format(text) {
+    return text.replace(/```([\s\S]*?)```/g, (_, code) => {
+        return "\n" + code.trim() + "\n";
+    });
 }
 
 function send() {
@@ -136,32 +114,15 @@ function send() {
     const text = input.value.trim();
     if (!text) return;
 
-    add("You: " + text, "user");
-
-    const thinking = thinkingBubble();
+    bubble(text, "user");
+    const t = typing();
 
     setTimeout(() => {
-        thinking.remove();
-        typeWriter("AI: " + ai(text));
-    }, 500);
+        t.remove();
+        bubble(format(ai(text)), "ai");
+    }, 600);
 
     input.value = "";
-}
-
-// タイピング演出
-function typeWriter(text) {
-    const div = document.createElement("div");
-    div.className = "msg ai";
-    chat.appendChild(div);
-
-    let i = 0;
-    const interval = setInterval(() => {
-        div.textContent += text[i];
-        i++;
-        chat.scrollTop = chat.scrollHeight;
-
-        if (i >= text.length) clearInterval(interval);
-    }, 15);
 }
 
 document.getElementById("input").addEventListener("keydown", e => {
