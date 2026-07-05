@@ -9,14 +9,15 @@
 <body class="bg-[#0b0f14] text-gray-100 h-screen flex">
 
 <!-- Sidebar -->
-<div class="w-64 bg-[#0a0f1a] border-r border-gray-800 flex flex-col">
+<div class="sidebar-list flex-1 overflow-y-auto text-sm p-2 space-y-2"></div>
   <div class="p-4 font-bold text-white border-b border-gray-800">
     FakeChatGPT
   </div>
 
-  <button class="m-3 p-2 bg-sky-500 text-black rounded hover:bg-sky-400">
-    + New Chat
-  </button>
+<button onclick="newChat()"
+class="m-3 p-2 bg-sky-500 text-black rounded hover:bg-sky-400">
++ New Chat
+</button>
 
   <div class="flex-1 overflow-y-auto text-sm p-2 space-y-2">
     <div class="p-2 hover:bg-gray-800 rounded">今日の会話</div>
@@ -51,6 +52,69 @@
 </div>
 
 <script>
+  // ===== Chat Threads =====
+let threads = {};
+let currentThreadId = "default";
+
+// 初期スレッド作成
+threads[currentThreadId] = {
+    id: currentThreadId,
+    title: "New Chat",
+    messages: []
+};
+
+// サイドバー更新用（あれば）
+function renderSidebar() {
+    const sidebar = document.querySelector(".sidebar-list");
+    if (!sidebar) return;
+
+    sidebar.innerHTML = "";
+
+    Object.values(threads).forEach(thread => {
+        const div = document.createElement("div");
+        div.className = "p-2 hover:bg-gray-800 rounded cursor-pointer";
+        div.textContent = thread.title;
+        div.onclick = () => switchThread(thread.id);
+        sidebar.appendChild(div);
+    });
+}
+
+// スレッド切り替え
+function switchThread(id) {
+    currentThreadId = id;
+    chat.innerHTML = "";
+
+    threads[id].messages.forEach(m => {
+        bubble(m.text, m.role);
+    });
+}
+
+// 新規チャット作成
+function newChat() {
+    const id = "chat_" + Date.now();
+
+    threads[id] = {
+        id,
+        title: "Chat " + Object.keys(threads).length,
+        messages: []
+    };
+
+    switchThread(id);
+    renderSidebar();
+}
+
+// メッセージ保存（重要）
+function saveMessage(role, text) {
+    threads[currentThreadId].messages.push({ role, text });
+}
+
+// ===== 上書きする bubble =====
+const originalBubble = bubble;
+
+bubble = function(text, role) {
+    saveMessage(role, text);
+    originalBubble(text, role);
+};
 const chat = document.getElementById("chat");
 let memory = [];
 
