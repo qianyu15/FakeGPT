@@ -2,46 +2,40 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>Chat UI Clone</title>
+<title>FakeChatGPT Fixed</title>
 <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
 <body class="bg-[#0b0f14] text-gray-100 h-screen flex">
 
 <!-- Sidebar -->
-<div class="sidebar-list flex-1 overflow-y-auto text-sm p-2 space-y-2"></div>
-  <div class="p-4 font-bold text-white border-b border-gray-800">
+<div class="w-64 bg-[#0a0f1a] border-r border-gray-800 flex flex-col">
+
+  <div class="p-4 font-bold border-b border-gray-800">
     FakeChatGPT
   </div>
 
-<button onclick="newChat()"
-class="m-3 p-2 bg-sky-500 text-black rounded hover:bg-sky-400">
-+ New Chat
-</button>
+  <button onclick="newChat()"
+    class="m-3 p-2 bg-sky-500 text-black rounded hover:bg-sky-400">
+    + New Chat
+  </button>
 
-  <div class="flex-1 overflow-y-auto text-sm p-2 space-y-2">
-    <div class="p-2 hover:bg-gray-800 rounded">今日の会話</div>
-    <div class="p-2 hover:bg-gray-800 rounded">コード相談</div>
-    <div class="p-2 hover:bg-gray-800 rounded">雑談ログ</div>
-  </div>
+  <div id="sidebar" class="flex-1 overflow-y-auto text-sm p-2 space-y-2"></div>
 </div>
 
 <!-- Main -->
 <div class="flex flex-col flex-1">
 
-  <!-- Header -->
   <div class="h-12 border-b border-gray-800 flex items-center px-4">
     <div class="font-semibold">Chat</div>
   </div>
 
-  <!-- Chat -->
   <div id="chat" class="flex-1 overflow-y-auto p-6 space-y-4"></div>
 
-  <!-- Input -->
   <div class="border-t border-gray-800 p-3 flex gap-2">
     <input id="input"
       class="flex-1 bg-[#111823] p-3 rounded outline-none text-white"
-      placeholder="メッセージを送信..." />
+      placeholder="メッセージ..." />
 
     <button onclick="send()"
       class="px-4 bg-green-400 text-black rounded hover:bg-green-300">
@@ -52,34 +46,64 @@ class="m-3 p-2 bg-sky-500 text-black rounded hover:bg-sky-400">
 </div>
 
 <script>
-  // ===== Chat Threads =====
+const chat = document.getElementById("chat");
+const sidebar = document.getElementById("sidebar");
+
 let threads = {};
 let currentThreadId = "default";
 
-// 初期スレッド作成
+// 初期チャット
 threads[currentThreadId] = {
     id: currentThreadId,
     title: "New Chat",
     messages: []
 };
 
-// サイドバー更新用（あれば）
-function renderSidebar() {
-    const sidebar = document.querySelector(".sidebar-list");
-    if (!sidebar) return;
+renderSidebar();
+switchThread(currentThreadId);
 
+// ===== UI =====
+function bubble(text, role) {
+    const wrap = document.createElement("div");
+    wrap.className = "flex " + (role === "user" ? "justify-end" : "justify-start");
+
+    const el = document.createElement("div");
+    el.className =
+        "max-w-[70%] px-4 py-2 rounded-2xl whitespace-pre-wrap text-sm " +
+        (role === "user"
+            ? "bg-sky-500 text-black rounded-br-sm"
+            : "bg-gray-800 text-gray-100 rounded-bl-sm");
+
+    el.textContent = text;
+
+    wrap.appendChild(el);
+    chat.appendChild(wrap);
+    chat.scrollTop = chat.scrollHeight;
+}
+
+// ===== memory =====
+function save(role, text) {
+    threads[currentThreadId].messages.push({ role, text });
+}
+
+// ===== sidebar =====
+function renderSidebar() {
     sidebar.innerHTML = "";
 
-    Object.values(threads).forEach(thread => {
+    Object.values(threads).forEach(t => {
         const div = document.createElement("div");
-        div.className = "p-2 hover:bg-gray-800 rounded cursor-pointer";
-        div.textContent = thread.title;
-        div.onclick = () => switchThread(thread.id);
+        div.className =
+            "p-2 rounded cursor-pointer hover:bg-gray-800 " +
+            (t.id === currentThreadId ? "bg-gray-800" : "");
+
+        div.textContent = t.title;
+        div.onclick = () => switchThread(t.id);
+
         sidebar.appendChild(div);
     });
 }
 
-// スレッド切り替え
+// ===== switch chat =====
 function switchThread(id) {
     currentThreadId = id;
     chat.innerHTML = "";
@@ -87,9 +111,11 @@ function switchThread(id) {
     threads[id].messages.forEach(m => {
         bubble(m.text, m.role);
     });
+
+    renderSidebar();
 }
 
-// 新規チャット作成
+// ===== new chat =====
 function newChat() {
     const id = "chat_" + Date.now();
 
@@ -100,91 +126,47 @@ function newChat() {
     };
 
     switchThread(id);
-    renderSidebar();
 }
 
-// メッセージ保存（重要）
-function saveMessage(role, text) {
-    threads[currentThreadId].messages.push({ role, text });
-}
-
-// ===== 上書きする bubble =====
-const originalBubble = bubble;
-
-bubble = function(text, role) {
-    saveMessage(role, text);
-    originalBubble(text, role);
-};
-const chat = document.getElementById("chat");
-let memory = [];
-
-function bubble(text, role) {
-    const wrap = document.createElement("div");
-    wrap.className = "flex " + (role === "user" ? "justify-end" : "justify-start");
-
-    const bubble = document.createElement("div");
-
-    bubble.className =
-        "max-w-[70%] px-4 py-2 rounded-2xl whitespace-pre-wrap text-sm leading-relaxed " +
-        (role === "user"
-            ? "bg-sky-500 text-black rounded-br-sm"
-            : "bg-gray-800 text-gray-100 rounded-bl-sm");
-
-    bubble.textContent = text;
-
-    wrap.appendChild(bubble);
-    chat.appendChild(wrap);
-    chat.scrollTop = chat.scrollHeight;
-}
-
-function typing() {
-    const div = document.createElement("div");
-    div.className = "text-gray-500 text-sm";
-    div.textContent = "AI is thinking...";
-    chat.appendChild(div);
-    chat.scrollTop = chat.scrollHeight;
-    return div;
-}
-
+// ===== AI =====
 function ai(msg) {
-    memory.push(msg);
     msg = msg.toLowerCase();
 
-    if (msg.includes("こんにちは")) return "こんにちは。UIだけはそれっぽいAIです。";
-    if (msg.includes("名前")) return "FakeChatGPT（見た目詐欺モデル）です。";
-    if (msg.includes("覚えて")) return "ローカルメモリに保存しました（RAM上）";
-    if (msg.includes("思い出して")) return "最近: " + memory.slice(-3).join(" / ");
-    if (msg.includes("コード")) return "```js\nconsole.log('hello world');\n```";
+    if (msg.includes("こんにちは")) return "こんにちは。FakeChatGPTです。";
+    if (msg.includes("名前")) return "FakeChatGPT（ローカルUI版）";
+    if (msg.includes("コード")) return "console.log('hello world');";
 
     const pool = [
-        "その入力は曖昧すぎて解釈できません",
-        "意味構造が未定義です",
-        "人間の意図推定に失敗しました",
+        "意味が曖昧です",
+        "解析不能です",
+        "人間の意図を推定できません",
         "ローカルモデルは沈黙しています"
     ];
 
     return pool[Math.floor(Math.random() * pool.length)];
 }
 
-// very small markdown (code block only)
-function format(text) {
-    return text.replace(/```([\s\S]*?)```/g, (_, code) => {
-        return "\n" + code.trim() + "\n";
-    });
-}
-
+// ===== send =====
 function send() {
     const input = document.getElementById("input");
     const text = input.value.trim();
     if (!text) return;
 
+    save("user", text);
     bubble(text, "user");
-    const t = typing();
+
+    const loading = document.createElement("div");
+    loading.className = "text-gray-500 text-sm";
+    loading.textContent = "AI is thinking...";
+    chat.appendChild(loading);
 
     setTimeout(() => {
-        t.remove();
-        bubble(format(ai(text)), "ai");
-    }, 600);
+        loading.remove();
+
+        const res = ai(text);
+        save("ai", res);
+        bubble(res, "ai");
+    }, 500);
 
     input.value = "";
 }
