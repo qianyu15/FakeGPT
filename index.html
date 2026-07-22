@@ -1,10 +1,11 @@
-<!DOCTYPE html>
+  <!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
+
   <meta
     name="viewport"
-    content="width=device-width, initial-scale=1.0, maximum-scale=1.0"
+    content="width=device-width, initial-scale=1.0"
   />
 
   <title>ChatGPT UI</title>
@@ -19,7 +20,6 @@
     html,
     body {
       width: 100%;
-      max-width: 100%;
       height: 100%;
       margin: 0;
       overflow: hidden;
@@ -37,8 +37,8 @@
     }
 
     /*
-      長いURLや長い英数字でも
-      横方向にはみ出さないようにする
+      長いURL・長い英数字でも
+      横方向にはみ出さない
     */
     .message {
       min-width: 0;
@@ -55,11 +55,9 @@
       word-break: break-word;
     }
 
-    textarea {
-      overflow-wrap: anywhere;
-      word-break: break-word;
-    }
-
+    /*
+      スクロールバー
+    */
     .scrollbar::-webkit-scrollbar {
       width: 6px;
     }
@@ -73,6 +71,14 @@
       scrollbar-width: thin;
       scrollbar-color: #d1d5db transparent;
     }
+
+    /*
+      textareaの長文対策
+    */
+    textarea {
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
   </style>
 </head>
 
@@ -82,10 +88,13 @@
   <div class="flex h-screen w-full max-w-full overflow-hidden">
 
     <!-- Sidebar -->
-    <aside class="hidden w-64 shrink-0 flex-col border-r bg-gray-50 md:flex">
+    <aside
+      class="hidden w-64 shrink-0 flex-col border-r bg-gray-50 md:flex"
+    >
 
       <!-- New Chat -->
-      <div class="p-4">
+      <div class="shrink-0 p-4">
+
         <button
           id="newChatButton"
           type="button"
@@ -94,10 +103,14 @@
           <span class="text-lg">＋</span>
           新しいチャット
         </button>
+
       </div>
 
+
       <!-- Chat History -->
-      <div class="scrollbar min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-3">
+      <div
+        class="scrollbar min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-3"
+      >
 
         <p class="px-3 py-2 text-xs font-semibold text-gray-400">
           今日
@@ -119,6 +132,7 @@
 
       </div>
 
+
       <!-- User -->
       <div class="shrink-0 border-t p-4">
 
@@ -131,6 +145,7 @@
           </div>
 
           <div class="min-w-0">
+
             <p class="truncate text-sm font-medium">
               Qianyu
             </p>
@@ -138,6 +153,7 @@
             <p class="text-xs text-gray-500">
               Free Plan
             </p>
+
           </div>
 
         </div>
@@ -148,14 +164,18 @@
 
 
     <!-- Main -->
-    <main class="flex min-w-0 max-w-full flex-1 flex-col overflow-hidden">
+    <main
+      class="flex min-h-0 min-w-0 max-w-full flex-1 flex-col"
+    >
 
       <!-- Header -->
       <header
         class="flex h-14 shrink-0 items-center justify-between border-b px-3 sm:px-4 md:px-6"
       >
 
-        <div class="flex min-w-0 items-center gap-2 sm:gap-3">
+        <div
+          class="flex min-w-0 items-center gap-2 sm:gap-3"
+        >
 
           <!-- Mobile Menu -->
           <button
@@ -167,9 +187,11 @@
             ☰
           </button>
 
+
           <h1 class="truncate font-semibold">
             ChatGPT
           </h1>
+
 
           <span
             class="shrink-0 rounded-md bg-gray-100 px-2 py-1 text-xs text-gray-500"
@@ -179,6 +201,8 @@
 
         </div>
 
+
+        <!-- Settings -->
         <button
           type="button"
           class="shrink-0 rounded-lg p-2 text-gray-500 transition hover:bg-gray-100"
@@ -193,11 +217,13 @@
       <!-- Messages -->
       <section
         id="messages"
-        class="scrollbar min-w-0 flex-1 overflow-x-hidden overflow-y-auto px-3 py-8 sm:px-4 md:px-20 lg:px-32"
+        class="scrollbar min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto px-3 py-8 sm:px-4 md:px-20 lg:px-32"
       >
 
-        <!-- Initial User Message -->
-        <div class="mx-auto mb-8 flex min-w-0 max-w-3xl gap-3 sm:gap-4">
+        <!-- User Message -->
+        <div
+          class="mx-auto mb-8 flex min-w-0 max-w-3xl gap-3 sm:gap-4"
+        >
 
           <div
             class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-black text-sm text-white"
@@ -205,11 +231,15 @@
             Q
           </div>
 
-          <div class="min-w-0 max-w-full flex-1 overflow-hidden">
+
+          <div
+            class="min-w-0 max-w-full flex-1 overflow-hidden"
+          >
 
             <p class="mb-2 font-semibold">
               あなた
             </p>
+
 
             <div
               class="max-w-full overflow-hidden break-words rounded-2xl bg-gray-100 p-4"
@@ -222,8 +252,10 @@
         </div>
 
 
-        <!-- Initial AI Message -->
-        <div class="mx-auto flex min-w-0 max-w-3xl gap-3 sm:gap-4">
+        <!-- AI Message -->
+        <div
+          class="mx-auto flex min-w-0 max-w-3xl gap-3 sm:gap-4"
+        >
 
           <div
             class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-sm text-white"
@@ -231,11 +263,15 @@
             AI
           </div>
 
-          <div class="min-w-0 max-w-full flex-1 overflow-hidden">
+
+          <div
+            class="min-w-0 max-w-full flex-1 overflow-hidden"
+          >
 
             <p class="mb-2 font-semibold">
               ChatGPT
             </p>
+
 
             <div class="message leading-7">
               ファイルを確認しました。内容を解析しています。
@@ -250,18 +286,18 @@
 
       <!-- Input Area -->
       <div
-        class="w-full max-w-full shrink-0 overflow-hidden px-3 pb-4 sm:px-4 md:px-20 lg:px-32"
+        class="w-full max-w-full shrink-0 px-3 pb-4 sm:px-4 md:px-20 lg:px-32"
       >
 
         <!-- File Preview -->
         <div
           id="filePreview"
-          class="mx-auto mb-2 hidden w-full max-w-3xl overflow-hidden"
+          class="mx-auto mb-2 hidden w-full max-w-3xl"
         >
 
           <div
             id="fileList"
-            class="flex max-w-full flex-wrap gap-2 overflow-hidden"
+            class="flex max-w-full flex-wrap gap-2"
           ></div>
 
         </div>
@@ -274,7 +310,7 @@
         >
 
           <div
-            class="relative min-w-0 max-w-full overflow-hidden rounded-2xl border border-gray-300 bg-white shadow-sm transition focus-within:border-gray-500"
+            class="relative min-w-0 max-w-full rounded-2xl border border-gray-300 bg-white shadow-sm transition focus-within:border-gray-500"
           >
 
             <!-- Textarea -->
@@ -317,6 +353,7 @@
 
               </label>
 
+
               <input
                 id="fileInput"
                 type="file"
@@ -353,7 +390,9 @@
 
 
         <!-- Disclaimer -->
-        <p class="mt-2 px-2 text-center text-xs text-gray-400">
+        <p
+          class="mt-2 px-2 text-center text-xs text-gray-400"
+        >
           ChatGPTは間違えることがあります。重要な情報は確認してください。
         </p>
 
@@ -365,16 +404,30 @@
 
 
   <script>
-    const fileInput = document.getElementById("fileInput");
-    const filePreview = document.getElementById("filePreview");
-    const fileList = document.getElementById("fileList");
+    const fileInput =
+      document.getElementById("fileInput");
 
-    const chatForm = document.getElementById("chatForm");
-    const messageInput = document.getElementById("messageInput");
-    const messages = document.getElementById("messages");
-    const sendButton = document.getElementById("sendButton");
+    const filePreview =
+      document.getElementById("filePreview");
 
-    const newChatButton = document.getElementById("newChatButton");
+    const fileList =
+      document.getElementById("fileList");
+
+    const chatForm =
+      document.getElementById("chatForm");
+
+    const messageInput =
+      document.getElementById("messageInput");
+
+    const messages =
+      document.getElementById("messages");
+
+    const sendButton =
+      document.getElementById("sendButton");
+
+    const newChatButton =
+      document.getElementById("newChatButton");
+
 
     let selectedFiles = [];
 
@@ -385,19 +438,24 @@
       ============================
     */
 
-    fileInput.addEventListener("change", () => {
+    fileInput.addEventListener(
+      "change",
+      () => {
 
-      selectedFiles = [
-        ...selectedFiles,
-        ...Array.from(fileInput.files)
-      ];
+        selectedFiles = [
+          ...selectedFiles,
+          ...Array.from(fileInput.files)
+        ];
 
-      renderFiles();
+        renderFiles();
 
-      // 同じファイルを再選択できるようにする
-      fileInput.value = "";
+        // 同じファイルを再選択可能にする
+        fileInput.value = "";
 
-    });
+        updateSendButton();
+
+      }
+    );
 
 
     /*
@@ -410,80 +468,120 @@
 
       fileList.innerHTML = "";
 
-      if (selectedFiles.length === 0) {
 
-        filePreview.classList.add("hidden");
+      if (
+        selectedFiles.length === 0
+      ) {
+
+        filePreview.classList.add(
+          "hidden"
+        );
 
         return;
 
       }
 
-      filePreview.classList.remove("hidden");
+
+      filePreview.classList.remove(
+        "hidden"
+      );
 
 
-      selectedFiles.forEach((file, index) => {
+      selectedFiles.forEach(
+        (file, index) => {
 
-        const fileItem = document.createElement("div");
+          const fileItem =
+            document.createElement(
+              "div"
+            );
 
-        fileItem.className =
-          "flex min-w-0 max-w-full items-center gap-3 overflow-hidden rounded-xl border bg-gray-50 px-3 py-2";
+
+          fileItem.className =
+            "flex min-w-0 max-w-full items-center gap-3 overflow-hidden rounded-xl border bg-gray-50 px-3 py-2";
 
 
-        fileItem.innerHTML = `
+          fileItem.innerHTML = `
 
-          <div
-            class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border bg-white"
-          >
-            📄
-          </div>
-
-          <div class="min-w-0 flex-1 overflow-hidden">
-
-            <p
-              class="truncate text-sm font-medium"
-              title="${escapeHTML(file.name)}"
+            <div
+              class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border bg-white"
             >
-              ${escapeHTML(file.name)}
-            </p>
-
-            <p class="text-xs text-gray-500">
-              ${formatBytes(file.size)}
-            </p>
-
-          </div>
-
-          <button
-            type="button"
-            class="remove-file shrink-0 text-xl leading-none text-gray-400 transition hover:text-red-500"
-            data-index="${index}"
-            aria-label="ファイルを削除"
-          >
-            ×
-          </button>
-
-        `;
+              📄
+            </div>
 
 
-        fileList.appendChild(fileItem);
+            <div
+              class="min-w-0 flex-1 overflow-hidden"
+            >
 
-      });
+              <p
+                class="truncate text-sm font-medium"
+                title="${escapeHTML(file.name)}"
+              >
+                ${escapeHTML(file.name)}
+              </p>
+
+
+              <p
+                class="text-xs text-gray-500"
+              >
+                ${formatBytes(file.size)}
+              </p>
+
+            </div>
+
+
+            <button
+              type="button"
+              class="remove-file shrink-0 text-xl leading-none text-gray-400 transition hover:text-red-500"
+              data-index="${index}"
+              aria-label="ファイルを削除"
+            >
+              ×
+            </button>
+
+          `;
+
+
+          fileList.appendChild(
+            fileItem
+          );
+
+        }
+      );
 
 
       document
-        .querySelectorAll(".remove-file")
-        .forEach(button => {
+        .querySelectorAll(
+          ".remove-file"
+        )
+        .forEach(
+          button => {
 
-          button.addEventListener("click", () => {
+            button.addEventListener(
+              "click",
+              () => {
 
-            const index = Number(button.dataset.index);
+                const index =
+                  Number(
+                    button.dataset.index
+                  );
 
-            selectedFiles.splice(index, 1);
 
-            renderFiles();
+                selectedFiles.splice(
+                  index,
+                  1
+                );
 
-          });
 
-        });
+                renderFiles();
+
+                updateSendButton();
+
+              }
+            );
+
+          }
+        );
 
     }
 
@@ -494,101 +592,141 @@
       ============================
     */
 
-    chatForm.addEventListener("submit", async event => {
+    chatForm.addEventListener(
+      "submit",
+      event => {
 
-      event.preventDefault();
-
-
-      const text = messageInput.value.trim();
-
-
-      if (
-        !text &&
-        selectedFiles.length === 0
-      ) {
-
-        return;
-
-      }
+        event.preventDefault();
 
 
-      /*
-        APIに送信する場合:
-
-        const formData = new FormData();
-
-        formData.append("message", text);
-
-        selectedFiles.forEach(file => {
-          formData.append("files", file);
-        });
-
-        const response = await fetch("/api/chat", {
-          method: "POST",
-          body: formData
-        });
-
-        const data = await response.json();
-      */
+        const text =
+          messageInput.value.trim();
 
 
-      // UIにユーザーメッセージを追加
-      addUserMessage(text, selectedFiles);
+        if (
+          !text &&
+          selectedFiles.length === 0
+        ) {
+
+          return;
+
+        }
 
 
-      // 入力をリセット
-      messageInput.value = "";
+        /*
+          APIに送信する場合:
 
-      selectedFiles = [];
+          const formData = new FormData();
 
-      renderFiles();
+          formData.append(
+            "message",
+            text
+          );
+
+          selectedFiles.forEach(
+            file => {
+
+              formData.append(
+                "files",
+                file
+              );
+
+            }
+          );
+
+          const response =
+            await fetch(
+              "/api/chat",
+              {
+                method: "POST",
+                body: formData
+              }
+            );
+
+          const data =
+            await response.json();
+        */
 
 
-      // 仮のAI応答
-      setTimeout(() => {
-
-        addAIMessage(
-          "ファイルを受信しました。バックエンドAPIに接続すれば、ここでAIによる解析結果を表示できます。"
+        // ユーザーメッセージ追加
+        addUserMessage(
+          text,
+          selectedFiles
         );
 
-      }, 500);
 
-    });
+        // 入力をリセット
+        messageInput.value = "";
+
+        selectedFiles = [];
+
+        renderFiles();
+
+        updateSendButton();
+
+
+        // 仮のAI応答
+        setTimeout(
+          () => {
+
+            addAIMessage(
+              "ファイルを受信しました。バックエンドAPIに接続すれば、ここでAIによる解析結果を表示できます。"
+            );
+
+          },
+          500
+        );
+
+      }
+    );
 
 
     /*
       ============================
-      ユーザーメッセージ追加
+      ユーザーメッセージ
       ============================
     */
 
-    function addUserMessage(text, files) {
+    function addUserMessage(
+      text,
+      files
+    ) {
 
-      const fileHTML = files
-        .map(file => `
+      const fileHTML =
+        files
+          .map(
+            file => `
 
-          <div
-            class="mt-2 flex min-w-0 max-w-full items-center gap-2 overflow-hidden rounded-lg border bg-white px-3 py-2 text-sm"
-          >
+              <div
+                class="mt-2 flex min-w-0 max-w-full items-center gap-2 overflow-hidden rounded-lg border bg-white px-3 py-2 text-sm"
+              >
 
-            <span class="shrink-0">
-              📄
-            </span>
-
-            <span
-              class="min-w-0 truncate"
-              title="${escapeHTML(file.name)}"
-            >
-              ${escapeHTML(file.name)}
-            </span>
-
-          </div>
-
-        `)
-        .join("");
+                <span
+                  class="shrink-0"
+                >
+                  📄
+                </span>
 
 
-      const message = document.createElement("div");
+                <span
+                  class="min-w-0 truncate"
+                  title="${escapeHTML(file.name)}"
+                >
+                  ${escapeHTML(file.name)}
+                </span>
+
+              </div>
+
+            `
+          )
+          .join("");
+
+
+      const message =
+        document.createElement(
+          "div"
+        );
+
 
       message.className =
         "mx-auto mb-8 flex min-w-0 max-w-3xl gap-3 sm:gap-4";
@@ -602,13 +740,17 @@
           Q
         </div>
 
+
         <div
           class="min-w-0 max-w-full flex-1 overflow-hidden"
         >
 
-          <p class="mb-2 font-semibold">
+          <p
+            class="mb-2 font-semibold"
+          >
             あなた
           </p>
+
 
           <div
             class="max-w-full overflow-hidden break-words rounded-2xl bg-gray-100 p-4"
@@ -629,7 +771,10 @@
       `;
 
 
-      messages.appendChild(message);
+      messages.appendChild(
+        message
+      );
+
 
       scrollToBottom();
 
@@ -638,13 +783,19 @@
 
     /*
       ============================
-      AIメッセージ追加
+      AIメッセージ
       ============================
     */
 
-    function addAIMessage(text) {
+    function addAIMessage(
+      text
+    ) {
 
-      const message = document.createElement("div");
+      const message =
+        document.createElement(
+          "div"
+        );
+
 
       message.className =
         "mx-auto mb-8 flex min-w-0 max-w-3xl gap-3 sm:gap-4";
@@ -658,13 +809,17 @@
           AI
         </div>
 
+
         <div
           class="min-w-0 max-w-full flex-1 overflow-hidden"
         >
 
-          <p class="mb-2 font-semibold">
+          <p
+            class="mb-2 font-semibold"
+          >
             ChatGPT
           </p>
+
 
           <div
             class="message leading-7"
@@ -677,7 +832,10 @@
       `;
 
 
-      messages.appendChild(message);
+      messages.appendChild(
+        message
+      );
+
 
       scrollToBottom();
 
@@ -686,19 +844,21 @@
 
     /*
       ============================
-      最下部へスクロール
+      スクロール
       ============================
     */
 
     function scrollToBottom() {
 
-      messages.scrollTo({
+      messages.scrollTo(
+        {
+          top:
+            messages.scrollHeight,
 
-        top: messages.scrollHeight,
-
-        behavior: "smooth"
-
-      });
+          behavior:
+            "smooth"
+        }
+      );
 
     }
 
@@ -709,9 +869,13 @@
       ============================
     */
 
-    function formatBytes(bytes) {
+    function formatBytes(
+      bytes
+    ) {
 
-      if (bytes === 0) {
+      if (
+        bytes === 0
+      ) {
 
         return "0 Bytes";
 
@@ -726,14 +890,19 @@
       ];
 
 
-      const index = Math.floor(
-        Math.log(bytes) / Math.log(1024)
-      );
+      const index =
+        Math.floor(
+          Math.log(bytes) /
+          Math.log(1024)
+        );
 
 
       return `${(
         bytes /
-        Math.pow(1024, index)
+        Math.pow(
+          1024,
+          index
+        )
       ).toFixed(1)} ${units[index]}`;
 
     }
@@ -745,19 +914,36 @@
       ============================
     */
 
-    function escapeHTML(text) {
+    function escapeHTML(
+      text
+    ) {
 
       return String(text)
 
-        .replaceAll("&", "&amp;")
+        .replaceAll(
+          "&",
+          "&amp;"
+        )
 
-        .replaceAll("<", "&lt;")
+        .replaceAll(
+          "<",
+          "&lt;"
+        )
 
-        .replaceAll(">", "&gt;")
+        .replaceAll(
+          ">",
+          "&gt;"
+        )
 
-        .replaceAll('"', "&quot;")
+        .replaceAll(
+          '"',
+          "&quot;"
+        )
 
-        .replaceAll("'", "&#039;");
+        .replaceAll(
+          "'",
+          "&#039;"
+        );
 
     }
 
@@ -768,19 +954,24 @@
       ============================
     */
 
-    newChatButton.addEventListener("click", () => {
+    newChatButton.addEventListener(
+      "click",
+      () => {
 
-      messages.innerHTML = "";
+        messages.innerHTML = "";
 
-      selectedFiles = [];
+        selectedFiles = [];
 
-      renderFiles();
+        renderFiles();
 
-      messageInput.value = "";
+        messageInput.value = "";
 
-      messageInput.focus();
+        updateSendButton();
 
-    });
+        messageInput.focus();
+
+      }
+    );
 
 
     /*
@@ -789,38 +980,47 @@
       ============================
     */
 
-    messageInput.addEventListener("keydown", event => {
+    messageInput.addEventListener(
+      "keydown",
+      event => {
 
-      if (
-        event.key === "Enter" &&
-        !event.shiftKey
-      ) {
+        if (
+          event.key === "Enter" &&
+          !event.shiftKey
+        ) {
 
-        event.preventDefault();
+          event.preventDefault();
 
-        chatForm.requestSubmit();
+          chatForm.requestSubmit();
+
+        }
 
       }
-
-    });
+    );
 
 
     /*
       ============================
-      入力状態
+      送信ボタン状態
       ============================
     */
 
-    messageInput.addEventListener("input", () => {
+    function updateSendButton() {
 
       sendButton.disabled =
         !messageInput.value.trim() &&
         selectedFiles.length === 0;
 
-    });
+    }
 
 
-    sendButton.disabled = true;
+    messageInput.addEventListener(
+      "input",
+      updateSendButton
+    );
+
+
+    updateSendButton();
 
   </script>
 
