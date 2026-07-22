@@ -2,19 +2,61 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0"
+  />
+
   <title>ChatGPT UI</title>
 
   <script src="https://cdn.tailwindcss.com"></script>
 
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
-        Roboto, Helvetica, Arial, sans-serif;
+      width: 100%;
+      max-width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+    }
+
+    body {
+      font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        Helvetica,
+        Arial,
+        sans-serif;
+    }
+
+    /*
+      長いURLや長い英数字でも
+      横方向にはみ出さないようにする
+    */
+    .message {
+      min-width: 0;
+      max-width: 100%;
+      overflow-wrap: anywhere;
+      word-break: break-word;
     }
 
     .message pre {
+      max-width: 100%;
+      overflow-x: auto;
       white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    textarea {
+      overflow-wrap: anywhere;
       word-break: break-word;
     }
 
@@ -26,77 +68,120 @@
       background: #d1d5db;
       border-radius: 999px;
     }
+
+    .scrollbar {
+      scrollbar-width: thin;
+      scrollbar-color: #d1d5db transparent;
+    }
   </style>
 </head>
 
 <body class="bg-white text-gray-900">
 
-  <div class="flex h-screen overflow-hidden">
+  <!-- App -->
+  <div class="flex h-screen w-full max-w-full overflow-hidden">
 
     <!-- Sidebar -->
-    <aside class="hidden md:flex w-64 flex-col border-r bg-gray-50">
+    <aside class="hidden w-64 shrink-0 flex-col border-r bg-gray-50 md:flex">
 
+      <!-- New Chat -->
       <div class="p-4">
         <button
-          class="flex w-full items-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium shadow-sm hover:bg-gray-100 transition"
+          id="newChatButton"
+          type="button"
+          class="flex w-full items-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium shadow-sm transition hover:bg-gray-100"
         >
           <span class="text-lg">＋</span>
           新しいチャット
         </button>
       </div>
 
-      <div class="flex-1 overflow-y-auto px-3 scrollbar">
+      <!-- Chat History -->
+      <div class="scrollbar min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-3">
+
         <p class="px-3 py-2 text-xs font-semibold text-gray-400">
           今日
         </p>
 
-        <button class="w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-gray-200">
+        <button
+          type="button"
+          class="w-full truncate rounded-lg px-3 py-2 text-left text-sm transition hover:bg-gray-200"
+        >
           ファイルについて質問
         </button>
 
-        <button class="w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-gray-200">
+        <button
+          type="button"
+          class="w-full truncate rounded-lg px-3 py-2 text-left text-sm transition hover:bg-gray-200"
+        >
           Next.jsのコード解析
         </button>
+
       </div>
 
-      <div class="border-t p-4">
-        <div class="flex items-center gap-3">
-          <div class="flex h-9 w-9 items-center justify-center rounded-full bg-black text-white">
+      <!-- User -->
+      <div class="shrink-0 border-t p-4">
+
+        <div class="flex min-w-0 items-center gap-3">
+
+          <div
+            class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-black text-white"
+          >
             Q
           </div>
 
-          <div>
-            <p class="text-sm font-medium">Qianyu</p>
-            <p class="text-xs text-gray-500">Free Plan</p>
+          <div class="min-w-0">
+            <p class="truncate text-sm font-medium">
+              Qianyu
+            </p>
+
+            <p class="text-xs text-gray-500">
+              Free Plan
+            </p>
           </div>
+
         </div>
+
       </div>
 
     </aside>
 
 
     <!-- Main -->
-    <main class="flex min-w-0 flex-1 flex-col">
+    <main class="flex min-w-0 max-w-full flex-1 flex-col overflow-hidden">
 
       <!-- Header -->
-      <header class="flex h-14 items-center justify-between border-b px-4 md:px-6">
+      <header
+        class="flex h-14 shrink-0 items-center justify-between border-b px-3 sm:px-4 md:px-6"
+      >
 
-        <div class="flex items-center gap-3">
-          <button class="md:hidden text-xl">
+        <div class="flex min-w-0 items-center gap-2 sm:gap-3">
+
+          <!-- Mobile Menu -->
+          <button
+            id="mobileMenuButton"
+            type="button"
+            class="shrink-0 text-xl md:hidden"
+            aria-label="メニュー"
+          >
             ☰
           </button>
 
-          <h1 class="font-semibold">
+          <h1 class="truncate font-semibold">
             ChatGPT
           </h1>
 
-          <span class="rounded-md bg-gray-100 px-2 py-1 text-xs text-gray-500">
+          <span
+            class="shrink-0 rounded-md bg-gray-100 px-2 py-1 text-xs text-gray-500"
+          >
             GPT-4o
           </span>
+
         </div>
 
         <button
-          class="rounded-lg p-2 text-gray-500 hover:bg-gray-100"
+          type="button"
+          class="shrink-0 rounded-lg p-2 text-gray-500 transition hover:bg-gray-100"
           title="設定"
         >
           ⚙
@@ -108,23 +193,27 @@
       <!-- Messages -->
       <section
         id="messages"
-        class="scrollbar flex-1 overflow-y-auto px-4 py-8 md:px-20 lg:px-32"
+        class="scrollbar min-w-0 flex-1 overflow-x-hidden overflow-y-auto px-3 py-8 sm:px-4 md:px-20 lg:px-32"
       >
 
-        <!-- User Message -->
-        <div class="mx-auto mb-8 flex max-w-3xl gap-4">
+        <!-- Initial User Message -->
+        <div class="mx-auto mb-8 flex min-w-0 max-w-3xl gap-3 sm:gap-4">
 
-          <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-black text-sm text-white">
+          <div
+            class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-black text-sm text-white"
+          >
             Q
           </div>
 
-          <div class="min-w-0 flex-1">
+          <div class="min-w-0 max-w-full flex-1 overflow-hidden">
 
             <p class="mb-2 font-semibold">
               あなた
             </p>
 
-            <div class="rounded-2xl bg-gray-100 p-4">
+            <div
+              class="max-w-full overflow-hidden break-words rounded-2xl bg-gray-100 p-4"
+            >
               このファイルを解析してください。
             </div>
 
@@ -133,14 +222,16 @@
         </div>
 
 
-        <!-- AI Message -->
-        <div class="mx-auto flex max-w-3xl gap-4">
+        <!-- Initial AI Message -->
+        <div class="mx-auto flex min-w-0 max-w-3xl gap-3 sm:gap-4">
 
-          <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-sm text-white">
+          <div
+            class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-sm text-white"
+          >
             AI
           </div>
 
-          <div class="min-w-0 flex-1">
+          <div class="min-w-0 max-w-full flex-1 overflow-hidden">
 
             <p class="mb-2 font-semibold">
               ChatGPT
@@ -158,26 +249,32 @@
 
 
       <!-- Input Area -->
-      <div class="px-4 pb-4 md:px-20 lg:px-32">
+      <div
+        class="w-full max-w-full shrink-0 overflow-hidden px-3 pb-4 sm:px-4 md:px-20 lg:px-32"
+      >
 
+        <!-- File Preview -->
         <div
           id="filePreview"
-          class="mx-auto mb-2 hidden max-w-3xl"
+          class="mx-auto mb-2 hidden w-full max-w-3xl overflow-hidden"
         >
+
           <div
             id="fileList"
-            class="flex flex-wrap gap-2"
+            class="flex max-w-full flex-wrap gap-2 overflow-hidden"
           ></div>
+
         </div>
 
 
+        <!-- Chat Form -->
         <form
           id="chatForm"
-          class="mx-auto max-w-3xl"
+          class="mx-auto w-full max-w-3xl"
         >
 
           <div
-            class="relative rounded-2xl border border-gray-300 bg-white shadow-sm transition focus-within:border-gray-500"
+            class="relative min-w-0 max-w-full overflow-hidden rounded-2xl border border-gray-300 bg-white shadow-sm transition focus-within:border-gray-500"
           >
 
             <!-- Textarea -->
@@ -185,19 +282,22 @@
               id="messageInput"
               rows="1"
               placeholder="メッセージを入力..."
-              class="max-h-48 min-h-[56px] w-full resize-none bg-transparent px-4 pb-14 pt-4 pr-14 outline-none"
+              class="block max-h-48 min-h-[56px] w-full max-w-full resize-none overflow-x-hidden overflow-y-auto bg-transparent px-4 pb-14 pt-4 pr-14 outline-none"
             ></textarea>
 
 
             <!-- Bottom Controls -->
-            <div class="absolute bottom-2 left-2 flex items-center gap-1">
+            <div
+              class="absolute bottom-2 left-2 flex items-center gap-1"
+            >
 
               <!-- File Upload -->
               <label
                 for="fileInput"
-                class="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 hover:text-black"
+                class="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-lg text-gray-500 transition hover:bg-gray-100 hover:text-black"
                 title="ファイルを添付"
               >
+
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
@@ -206,12 +306,15 @@
                   stroke="currentColor"
                   class="h-5 w-5"
                 >
+
                   <path
                     stroke-linecap="round"
                     stroke-linejoin="round"
                     d="m18.375 12.739-7.42 7.42a4.5 4.5 0 0 1-6.364-6.364l9.193-9.193a3 3 0 0 1 4.243 4.243l-9.193 9.193a1.5 1.5 0 0 1-2.121-2.121l8.486-8.486"
                   />
+
                 </svg>
+
               </label>
 
               <input
@@ -221,10 +324,12 @@
                 hidden
               />
 
+
               <!-- Add Button -->
               <button
                 type="button"
-                class="flex h-9 w-9 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100"
+                class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-gray-500 transition hover:bg-gray-100"
+                title="追加"
               >
                 ＋
               </button>
@@ -234,9 +339,10 @@
 
             <!-- Send Button -->
             <button
-              type="submit"
-              class="absolute bottom-2 right-2 flex h-9 w-9 items-center justify-center rounded-lg bg-black text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-40"
               id="sendButton"
+              type="submit"
+              class="absolute bottom-2 right-2 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-black text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-40"
+              title="送信"
             >
               ↑
             </button>
@@ -245,7 +351,9 @@
 
         </form>
 
-        <p class="mt-2 text-center text-xs text-gray-400">
+
+        <!-- Disclaimer -->
+        <p class="mt-2 px-2 text-center text-xs text-gray-400">
           ChatGPTは間違えることがあります。重要な情報は確認してください。
         </p>
 
@@ -260,14 +368,23 @@
     const fileInput = document.getElementById("fileInput");
     const filePreview = document.getElementById("filePreview");
     const fileList = document.getElementById("fileList");
+
     const chatForm = document.getElementById("chatForm");
     const messageInput = document.getElementById("messageInput");
     const messages = document.getElementById("messages");
+    const sendButton = document.getElementById("sendButton");
+
+    const newChatButton = document.getElementById("newChatButton");
 
     let selectedFiles = [];
 
 
-    // ファイル選択
+    /*
+      ============================
+      ファイル選択
+      ============================
+    */
+
     fileInput.addEventListener("change", () => {
 
       selectedFiles = [
@@ -277,101 +394,134 @@
 
       renderFiles();
 
-      // 同じファイルを再選択可能にする
+      // 同じファイルを再選択できるようにする
       fileInput.value = "";
+
     });
 
 
-    // ファイル表示
+    /*
+      ============================
+      ファイル表示
+      ============================
+    */
+
     function renderFiles() {
 
       fileList.innerHTML = "";
 
       if (selectedFiles.length === 0) {
+
         filePreview.classList.add("hidden");
+
         return;
+
       }
 
       filePreview.classList.remove("hidden");
+
 
       selectedFiles.forEach((file, index) => {
 
         const fileItem = document.createElement("div");
 
         fileItem.className =
-          "flex max-w-xs items-center gap-3 rounded-xl border bg-gray-50 px-3 py-2";
+          "flex min-w-0 max-w-full items-center gap-3 overflow-hidden rounded-xl border bg-gray-50 px-3 py-2";
+
 
         fileItem.innerHTML = `
-          <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white border">
+
+          <div
+            class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border bg-white"
+          >
             📄
           </div>
 
-          <div class="min-w-0 flex-1">
-            <p class="truncate text-sm font-medium">
+          <div class="min-w-0 flex-1 overflow-hidden">
+
+            <p
+              class="truncate text-sm font-medium"
+              title="${escapeHTML(file.name)}"
+            >
               ${escapeHTML(file.name)}
             </p>
 
             <p class="text-xs text-gray-500">
               ${formatBytes(file.size)}
             </p>
+
           </div>
 
           <button
             type="button"
-            class="remove-file text-gray-400 hover:text-red-500"
+            class="remove-file shrink-0 text-xl leading-none text-gray-400 transition hover:text-red-500"
             data-index="${index}"
+            aria-label="ファイルを削除"
           >
             ×
           </button>
+
         `;
 
+
         fileList.appendChild(fileItem);
+
       });
 
 
-      document.querySelectorAll(".remove-file").forEach(button => {
+      document
+        .querySelectorAll(".remove-file")
+        .forEach(button => {
 
-        button.addEventListener("click", () => {
+          button.addEventListener("click", () => {
 
-          const index = Number(button.dataset.index);
+            const index = Number(button.dataset.index);
 
-          selectedFiles.splice(index, 1);
+            selectedFiles.splice(index, 1);
 
-          renderFiles();
+            renderFiles();
+
+          });
+
         });
-
-      });
 
     }
 
 
-    // 送信
-    chatForm.addEventListener("submit", async (event) => {
+    /*
+      ============================
+      送信
+      ============================
+    */
+
+    chatForm.addEventListener("submit", async event => {
 
       event.preventDefault();
 
+
       const text = messageInput.value.trim();
 
-      if (!text && selectedFiles.length === 0) return;
 
+      if (
+        !text &&
+        selectedFiles.length === 0
+      ) {
 
-      const formData = new FormData();
+        return;
 
-      formData.append("message", text);
-
-      selectedFiles.forEach(file => {
-        formData.append("files", file);
-      });
-
-
-      // UIにユーザーメッセージを追加
-      addUserMessage(text, selectedFiles);
+      }
 
 
       /*
-        ここでAPIに送信する
+        APIに送信する場合:
 
-        例:
+        const formData = new FormData();
+
+        formData.append("message", text);
+
+        selectedFiles.forEach(file => {
+          formData.append("files", file);
+        });
 
         const response = await fetch("/api/chat", {
           method: "POST",
@@ -382,8 +532,15 @@
       */
 
 
+      // UIにユーザーメッセージを追加
+      addUserMessage(text, selectedFiles);
+
+
+      // 入力をリセット
       messageInput.value = "";
+
       selectedFiles = [];
+
       renderFiles();
 
 
@@ -399,102 +556,272 @@
     });
 
 
-    // ユーザーメッセージ追加
+    /*
+      ============================
+      ユーザーメッセージ追加
+      ============================
+    */
+
     function addUserMessage(text, files) {
 
-      const fileHTML = files.map(file => `
-        <div class="mt-2 flex items-center gap-2 rounded-lg border bg-white px-3 py-2 text-sm">
-          📄 ${escapeHTML(file.name)}
-        </div>
-      `).join("");
+      const fileHTML = files
+        .map(file => `
+
+          <div
+            class="mt-2 flex min-w-0 max-w-full items-center gap-2 overflow-hidden rounded-lg border bg-white px-3 py-2 text-sm"
+          >
+
+            <span class="shrink-0">
+              📄
+            </span>
+
+            <span
+              class="min-w-0 truncate"
+              title="${escapeHTML(file.name)}"
+            >
+              ${escapeHTML(file.name)}
+            </span>
+
+          </div>
+
+        `)
+        .join("");
 
 
       const message = document.createElement("div");
 
       message.className =
-        "mx-auto mb-8 flex max-w-3xl gap-4";
+        "mx-auto mb-8 flex min-w-0 max-w-3xl gap-3 sm:gap-4";
+
 
       message.innerHTML = `
-        <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-black text-sm text-white">
+
+        <div
+          class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-black text-sm text-white"
+        >
           Q
         </div>
 
-        <div class="min-w-0 flex-1">
-          <p class="mb-2 font-semibold">あなた</p>
+        <div
+          class="min-w-0 max-w-full flex-1 overflow-hidden"
+        >
 
-          <div class="rounded-2xl bg-gray-100 p-4">
-            ${escapeHTML(text)}
+          <p class="mb-2 font-semibold">
+            あなた
+          </p>
+
+          <div
+            class="max-w-full overflow-hidden break-words rounded-2xl bg-gray-100 p-4"
+          >
+
+            ${
+              text
+                ? escapeHTML(text)
+                : ""
+            }
+
             ${fileHTML}
+
           </div>
+
         </div>
+
       `;
+
 
       messages.appendChild(message);
 
       scrollToBottom();
+
     }
 
 
-    // AIメッセージ追加
+    /*
+      ============================
+      AIメッセージ追加
+      ============================
+    */
+
     function addAIMessage(text) {
 
       const message = document.createElement("div");
 
       message.className =
-        "mx-auto mb-8 flex max-w-3xl gap-4";
+        "mx-auto mb-8 flex min-w-0 max-w-3xl gap-3 sm:gap-4";
+
 
       message.innerHTML = `
-        <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-sm text-white">
+
+        <div
+          class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-sm text-white"
+        >
           AI
         </div>
 
-        <div class="min-w-0 flex-1">
-          <p class="mb-2 font-semibold">ChatGPT</p>
+        <div
+          class="min-w-0 max-w-full flex-1 overflow-hidden"
+        >
 
-          <div class="leading-7">
+          <p class="mb-2 font-semibold">
+            ChatGPT
+          </p>
+
+          <div
+            class="message leading-7"
+          >
             ${escapeHTML(text)}
           </div>
+
         </div>
+
       `;
+
 
       messages.appendChild(message);
 
       scrollToBottom();
+
     }
 
+
+    /*
+      ============================
+      最下部へスクロール
+      ============================
+    */
 
     function scrollToBottom() {
 
       messages.scrollTo({
+
         top: messages.scrollHeight,
+
         behavior: "smooth"
+
       });
 
     }
 
 
+    /*
+      ============================
+      ファイルサイズ
+      ============================
+    */
+
     function formatBytes(bytes) {
 
-      if (bytes === 0) return "0 Bytes";
+      if (bytes === 0) {
 
-      const units = ["Bytes", "KB", "MB", "GB"];
+        return "0 Bytes";
 
-      const index =
-        Math.floor(Math.log(bytes) / Math.log(1024));
+      }
 
-      return `${(bytes / Math.pow(1024, index)).toFixed(1)} ${units[index]}`;
+
+      const units = [
+        "Bytes",
+        "KB",
+        "MB",
+        "GB"
+      ];
+
+
+      const index = Math.floor(
+        Math.log(bytes) / Math.log(1024)
+      );
+
+
+      return `${(
+        bytes /
+        Math.pow(1024, index)
+      ).toFixed(1)} ${units[index]}`;
+
     }
 
+
+    /*
+      ============================
+      HTMLエスケープ
+      ============================
+    */
 
     function escapeHTML(text) {
 
-      return text
+      return String(text)
+
         .replaceAll("&", "&amp;")
+
         .replaceAll("<", "&lt;")
+
         .replaceAll(">", "&gt;")
+
         .replaceAll('"', "&quot;")
+
         .replaceAll("'", "&#039;");
+
     }
+
+
+    /*
+      ============================
+      新しいチャット
+      ============================
+    */
+
+    newChatButton.addEventListener("click", () => {
+
+      messages.innerHTML = "";
+
+      selectedFiles = [];
+
+      renderFiles();
+
+      messageInput.value = "";
+
+      messageInput.focus();
+
+    });
+
+
+    /*
+      ============================
+      Enter送信
+      ============================
+    */
+
+    messageInput.addEventListener("keydown", event => {
+
+      if (
+        event.key === "Enter" &&
+        !event.shiftKey
+      ) {
+
+        event.preventDefault();
+
+        chatForm.requestSubmit();
+
+      }
+
+    });
+
+
+    /*
+      ============================
+      入力状態
+      ============================
+    */
+
+    messageInput.addEventListener("input", () => {
+
+      sendButton.disabled =
+        !messageInput.value.trim() &&
+        selectedFiles.length === 0;
+
+    });
+
+
+    sendButton.disabled = true;
+
   </script>
 
 </body>
