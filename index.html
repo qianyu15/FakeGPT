@@ -2,675 +2,489 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ChatGPT UI</title>
 
-  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
 
   <style>
-    *,
-    *::before,
-    *::after {
-      box-sizing: border-box;
-    }
-
-    html,
     body {
-      width: 100%;
-      height: 100%;
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+        Roboto, Helvetica, Arial, sans-serif;
     }
 
-    body {
-      font-family:
-        Inter,
-        ui-sans-serif,
-        system-ui,
-        -apple-system,
-        BlinkMacSystemFont,
-        "Segoe UI",
-        sans-serif;
+    .message pre {
+      white-space: pre-wrap;
+      word-break: break-word;
     }
 
-    #app {
-      position: fixed;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
+    .scrollbar::-webkit-scrollbar {
+      width: 6px;
     }
 
-    .message-appear {
-      animation: messageAppear 0.25s ease-out;
-    }
-
-    @keyframes messageAppear {
-      from {
-        opacity: 0;
-        transform: translateY(8px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .typing span {
-      animation: blink 1.4s infinite;
-    }
-
-    .typing span:nth-child(2) {
-      animation-delay: 0.2s;
-    }
-
-    .typing span:nth-child(3) {
-      animation-delay: 0.4s;
-    }
-
-    @keyframes blink {
-      0%,
-      60%,
-      100% {
-        opacity: 0.25;
-      }
-
-      30% {
-        opacity: 1;
-      }
+    .scrollbar::-webkit-scrollbar-thumb {
+      background: #d1d5db;
+      border-radius: 999px;
     }
   </style>
 </head>
 
-<body class="bg-[#212121] text-gray-100">
+<body class="bg-white text-gray-900">
 
-  <!-- App -->
-  <div id="app" class="flex">
+  <div class="flex h-screen overflow-hidden">
 
     <!-- Sidebar -->
-    <aside
-      id="sidebar"
-      class="fixed inset-y-0 left-0 z-50 flex w-[280px] max-w-[85vw] -translate-x-full flex-col overflow-hidden bg-[#171717] transition-transform duration-300 md:relative md:translate-x-0"
-    >
+    <aside class="hidden md:flex w-64 flex-col border-r bg-gray-50">
 
-      <!-- Sidebar Top -->
-      <div class="shrink-0 p-3">
-
+      <div class="p-4">
         <button
-          onclick="newChat()"
-          class="flex w-full items-center gap-3 rounded-lg border border-white/10 px-3 py-3 text-sm transition hover:bg-white/10"
+          class="flex w-full items-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium shadow-sm hover:bg-gray-100 transition"
         >
-
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-          >
-            <path d="M12 5v14" />
-            <path d="M5 12h14" />
-          </svg>
-
-          <span>
-            新しいチャット
-          </span>
-
+          <span class="text-lg">＋</span>
+          新しいチャット
         </button>
-
       </div>
 
-      <!-- Sidebar History -->
-      <div class="min-h-0 flex-1 overflow-y-auto px-3">
-
-        <p class="mb-2 px-3 pt-4 text-xs font-semibold text-gray-500">
+      <div class="flex-1 overflow-y-auto px-3 scrollbar">
+        <p class="px-3 py-2 text-xs font-semibold text-gray-400">
           今日
         </p>
 
-        <button
-          class="flex w-full min-w-0 items-center gap-3 rounded-lg bg-white/10 px-3 py-3 text-left text-sm"
-        >
-
-          <svg
-            class="shrink-0"
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.8"
-          >
-            <path d="M21 11.5a8.38 8.38 0 0 1-9 8.5 8.8 8.8 0 0 1-4-.9L3 21l1.9-4.4A8.4 8.4 0 0 1 3 11.5a8.38 8.38 0 0 1 9-8.5 8.38 8.38 0 0 1 9 8.5Z" />
-          </svg>
-
-          <span class="truncate">
-            TailwindでChatGPTを作る
-          </span>
-
+        <button class="w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-gray-200">
+          ファイルについて質問
         </button>
 
-        <button
-          class="mt-1 flex w-full min-w-0 items-center gap-3 rounded-lg px-3 py-3 text-left text-sm text-gray-300 transition hover:bg-white/10"
-        >
-
-          <svg
-            class="shrink-0"
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.8"
-          >
-            <path d="M21 11.5a8.38 8.38 0 0 1-9 8.5 8.8 8.8 0 0 1-4-.9L3 21l1.9-4.4A8.4 8.4 0 0 1 3 11.5a8.38 8.38 0 0 1 9-8.5 8.38 8.38 0 0 1 9 8.5Z" />
-          </svg>
-
-          <span class="truncate">
-            物理パズルゲーム
-          </span>
-
+        <button class="w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-gray-200">
+          Next.jsのコード解析
         </button>
-
       </div>
 
-      <!-- Sidebar Bottom -->
-      <div class="shrink-0 border-t border-white/10 p-3">
+      <div class="border-t p-4">
+        <div class="flex items-center gap-3">
+          <div class="flex h-9 w-9 items-center justify-center rounded-full bg-black text-white">
+            Q
+          </div>
+
+          <div>
+            <p class="text-sm font-medium">Qianyu</p>
+            <p class="text-xs text-gray-500">Free Plan</p>
+          </div>
+        </div>
+      </div>
+
+    </aside>
+
+
+    <!-- Main -->
+    <main class="flex min-w-0 flex-1 flex-col">
+
+      <!-- Header -->
+      <header class="flex h-14 items-center justify-between border-b px-4 md:px-6">
+
+        <div class="flex items-center gap-3">
+          <button class="md:hidden text-xl">
+            ☰
+          </button>
+
+          <h1 class="font-semibold">
+            ChatGPT
+          </h1>
+
+          <span class="rounded-md bg-gray-100 px-2 py-1 text-xs text-gray-500">
+            GPT-4o
+          </span>
+        </div>
 
         <button
-          class="flex w-full min-w-0 items-center gap-3 rounded-lg p-3 text-left transition hover:bg-white/10"
+          class="rounded-lg p-2 text-gray-500 hover:bg-gray-100"
+          title="設定"
         >
+          ⚙
+        </button>
 
-          <div
-            class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-blue-500 text-sm font-bold"
-          >
+      </header>
+
+
+      <!-- Messages -->
+      <section
+        id="messages"
+        class="scrollbar flex-1 overflow-y-auto px-4 py-8 md:px-20 lg:px-32"
+      >
+
+        <!-- User Message -->
+        <div class="mx-auto mb-8 flex max-w-3xl gap-4">
+
+          <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-black text-sm text-white">
             Q
           </div>
 
           <div class="min-w-0 flex-1">
 
-            <p class="truncate text-sm font-medium">
-              Qianyu
+            <p class="mb-2 font-semibold">
+              あなた
             </p>
 
-            <p class="text-xs text-gray-500">
-              設定
-            </p>
+            <div class="rounded-2xl bg-gray-100 p-4">
+              このファイルを解析してください。
+            </div>
 
           </div>
 
-          <svg
-            class="shrink-0"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-          >
-            <circle cx="5" cy="12" r="1" />
-            <circle cx="12" cy="12" r="1" />
-            <circle cx="19" cy="12" r="1" />
-          </svg>
+        </div>
 
-        </button>
 
-      </div>
+        <!-- AI Message -->
+        <div class="mx-auto flex max-w-3xl gap-4">
 
-    </aside>
+          <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-sm text-white">
+            AI
+          </div>
 
-    <!-- Overlay -->
-    <div
-      id="overlay"
-      onclick="toggleSidebar()"
-      class="fixed inset-0 z-40 hidden bg-black/60 md:hidden"
-    ></div>
+          <div class="min-w-0 flex-1">
 
-    <!-- Main -->
-    <main
-      class="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden"
-    >
-
-      <!-- Header -->
-      <header
-        class="flex h-14 shrink-0 items-center justify-between border-b border-white/10 px-3 sm:px-4"
-      >
-
-        <div class="flex min-w-0 items-center gap-2">
-
-          <button
-            onclick="toggleSidebar()"
-            class="shrink-0 rounded-lg p-2 text-gray-400 transition hover:bg-white/10 hover:text-white md:hidden"
-          >
-
-            <svg
-              width="22"
-              height="22"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-            >
-              <path d="M4 6h16" />
-              <path d="M4 12h16" />
-              <path d="M4 18h16" />
-            </svg>
-
-          </button>
-
-          <button
-            class="flex items-center gap-2 rounded-lg px-2 py-2 text-lg font-semibold"
-          >
-
-            <span>
+            <p class="mb-2 font-semibold">
               ChatGPT
-            </span>
+            </p>
 
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path d="m6 9 6 6 6-6" />
-            </svg>
-
-          </button>
-
-        </div>
-
-        <button
-          class="shrink-0 rounded-lg p-2 text-gray-400 transition hover:bg-white/10 hover:text-white"
-        >
-
-          <svg
-            width="21"
-            height="21"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path d="M12 16V3" />
-            <path d="m7 8 5-5 5 5" />
-            <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7" />
-          </svg>
-
-        </button>
-
-      </header>
-
-      <!-- Chat -->
-      <section
-        id="chat"
-        class="relative min-h-0 flex-1 overflow-y-auto"
-      >
-
-        <!-- Welcome -->
-        <div
-          id="welcome"
-          class="flex min-h-full w-full items-center justify-center px-4 py-8"
-        >
-
-          <div class="w-full max-w-3xl">
-
-            <!-- AI Avatar -->
-            <div class="mb-6 flex justify-center">
-
-              <div
-                class="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-400 to-cyan-500"
-              >
-
-                <svg
-                  width="32"
-                  height="32"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="black"
-                  stroke-width="1.8"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <path d="M12 3v3" />
-                  <path d="M12 18v3" />
-                  <path d="M3 12h3" />
-                  <path d="M18 12h3" />
-                  <path d="m5.64 5.64 2.12 2.12" />
-                  <path d="m16.24 16.24 2.12 2.12" />
-                  <path d="m5.64 18.36 2.12-2.12" />
-                  <path d="m16.24 7.76 2.12-2.12" />
-                  <circle cx="12" cy="12" r="4" />
-                </svg>
-
-              </div>
-
-            </div>
-
-            <h1
-              class="mb-8 text-center text-2xl font-semibold sm:text-3xl"
-            >
-              今日は何をお手伝いしましょうか？
-            </h1>
-
-            <!-- Cards -->
-            <div class="grid gap-3 sm:grid-cols-2">
-
-              <button
-                onclick="quickMessage('HTMLとTailwindでモダンなUIを作って')"
-                class="min-w-0 rounded-xl border border-white/10 p-4 text-left transition hover:bg-white/10"
-              >
-
-                <p class="text-sm font-medium">
-                  Web UIを作る
-                </p>
-
-                <p class="mt-1 text-xs text-gray-500">
-                  HTMLとTailwindでデザイン
-                </p>
-
-              </button>
-
-              <button
-                onclick="quickMessage('JavaScriptのコードを改善して')"
-                class="min-w-0 rounded-xl border border-white/10 p-4 text-left transition hover:bg-white/10"
-              >
-
-                <p class="text-sm font-medium">
-                  コードを書く
-                </p>
-
-                <p class="mt-1 text-xs text-gray-500">
-                  JavaScriptやPythonなど
-                </p>
-
-              </button>
-
-              <button
-                onclick="quickMessage('面白いWebアプリのアイデアを考えて')"
-                class="min-w-0 rounded-xl border border-white/10 p-4 text-left transition hover:bg-white/10"
-              >
-
-                <p class="text-sm font-medium">
-                  アイデアを考える
-                </p>
-
-                <p class="mt-1 text-xs text-gray-500">
-                  新しいプロジェクトを考える
-                </p>
-
-              </button>
-
-              <button
-                onclick="quickMessage('このUIをもっとかっこよくして')"
-                class="min-w-0 rounded-xl border border-white/10 p-4 text-left transition hover:bg-white/10"
-              >
-
-                <p class="text-sm font-medium">
-                  デザインを改善
-                </p>
-
-                <p class="mt-1 text-xs text-gray-500">
-                  UIをもっと洗練させる
-                </p>
-
-              </button>
-
+            <div class="message leading-7">
+              ファイルを確認しました。内容を解析しています。
             </div>
 
           </div>
 
         </div>
-
-        <!-- Messages -->
-        <div
-          id="messages"
-          class="mx-auto hidden w-full max-w-3xl px-4 py-6"
-        ></div>
 
       </section>
 
-      <!-- Input -->
-      <footer
-        class="shrink-0 bg-[#212121] px-3 pb-3 pt-2 sm:px-4 sm:pb-4"
-      >
+
+      <!-- Input Area -->
+      <div class="px-4 pb-4 md:px-20 lg:px-32">
+
+        <div
+          id="filePreview"
+          class="mx-auto mb-2 hidden max-w-3xl"
+        >
+          <div
+            id="fileList"
+            class="flex flex-wrap gap-2"
+          ></div>
+        </div>
+
 
         <form
           id="chatForm"
-          class="mx-auto w-full max-w-3xl"
+          class="mx-auto max-w-3xl"
         >
 
           <div
-            class="relative rounded-2xl border border-white/10 bg-[#2f2f2f]"
+            class="relative rounded-2xl border border-gray-300 bg-white shadow-sm transition focus-within:border-gray-500"
           >
 
+            <!-- Textarea -->
             <textarea
-              id="input"
+              id="messageInput"
               rows="1"
               placeholder="メッセージを入力..."
-              class="block max-h-32 w-full resize-none overflow-y-auto bg-transparent px-4 py-3.5 pr-14 text-sm leading-6 text-white outline-none placeholder:text-gray-500"
+              class="max-h-48 min-h-[56px] w-full resize-none bg-transparent px-4 pb-14 pt-4 pr-14 outline-none"
             ></textarea>
 
-            <!-- Send -->
-            <button
-              id="sendButton"
-              type="submit"
-              aria-label="送信"
-              class="absolute bottom-2.5 right-2.5 flex h-9 w-9 items-center justify-center rounded-lg bg-white text-black transition hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-30"
-            >
 
-              <svg
-                width="19"
-                height="19"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2.2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+            <!-- Bottom Controls -->
+            <div class="absolute bottom-2 left-2 flex items-center gap-1">
+
+              <!-- File Upload -->
+              <label
+                for="fileInput"
+                class="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 hover:text-black"
+                title="ファイルを添付"
               >
-                <path d="M12 19V5" />
-                <path d="m6 11 6-6 6 6" />
-              </svg>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke-width="1.8"
+                  stroke="currentColor"
+                  class="h-5 w-5"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="m18.375 12.739-7.42 7.42a4.5 4.5 0 0 1-6.364-6.364l9.193-9.193a3 3 0 0 1 4.243 4.243l-9.193 9.193a1.5 1.5 0 0 1-2.121-2.121l8.486-8.486"
+                  />
+                </svg>
+              </label>
 
+              <input
+                id="fileInput"
+                type="file"
+                multiple
+                hidden
+              />
+
+              <!-- Add Button -->
+              <button
+                type="button"
+                class="flex h-9 w-9 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100"
+              >
+                ＋
+              </button>
+
+            </div>
+
+
+            <!-- Send Button -->
+            <button
+              type="submit"
+              class="absolute bottom-2 right-2 flex h-9 w-9 items-center justify-center rounded-lg bg-black text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-40"
+              id="sendButton"
+            >
+              ↑
             </button>
 
           </div>
 
-          <p class="mt-2 text-center text-[10px] text-gray-500 sm:text-xs">
-            ChatGPTは間違えることがあります。重要な情報は確認してください。
-          </p>
-
         </form>
 
-      </footer>
+        <p class="mt-2 text-center text-xs text-gray-400">
+          ChatGPTは間違えることがあります。重要な情報は確認してください。
+        </p>
+
+      </div>
 
     </main>
 
   </div>
 
+
   <script>
-
-    const form = document.getElementById("chatForm");
-    const input = document.getElementById("input");
+    const fileInput = document.getElementById("fileInput");
+    const filePreview = document.getElementById("filePreview");
+    const fileList = document.getElementById("fileList");
+    const chatForm = document.getElementById("chatForm");
+    const messageInput = document.getElementById("messageInput");
     const messages = document.getElementById("messages");
-    const welcome = document.getElementById("welcome");
-    const sendButton = document.getElementById("sendButton");
 
-    let isTyping = false;
+    let selectedFiles = [];
 
-    function toggleSidebar() {
 
-      const sidebar = document.getElementById("sidebar");
-      const overlay = document.getElementById("overlay");
+    // ファイル選択
+    fileInput.addEventListener("change", () => {
 
-      sidebar.classList.toggle("-translate-x-full");
-      overlay.classList.toggle("hidden");
+      selectedFiles = [
+        ...selectedFiles,
+        ...Array.from(fileInput.files)
+      ];
 
-    }
+      renderFiles();
 
-    function newChat() {
+      // 同じファイルを再選択可能にする
+      fileInput.value = "";
+    });
 
-      messages.innerHTML = "";
 
-      messages.classList.add("hidden");
+    // ファイル表示
+    function renderFiles() {
 
-      welcome.classList.remove("hidden");
+      fileList.innerHTML = "";
 
-      input.value = "";
-
-      input.style.height = "auto";
-
-      input.focus();
-
-    }
-
-    function quickMessage(text) {
-
-      input.value = text;
-
-      form.requestSubmit();
-
-    }
-
-    function getAIAvatar() {
-
-      return `
-
-        <div
-          class="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-cyan-500"
-        >
-
-          <svg
-            width="19"
-            height="19"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="black"
-            stroke-width="1.8"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path d="M12 3v3" />
-            <path d="M12 18v3" />
-            <path d="M3 12h3" />
-            <path d="M18 12h3" />
-            <path d="m5.64 5.64 2.12 2.12" />
-            <path d="m16.24 16.24 2.12 2.12" />
-            <path d="m5.64 18.36 2.12-2.12" />
-            <path d="m16.24 7.76 2.12-2.12" />
-            <circle cx="12" cy="12" r="4" />
-          </svg>
-
-        </div>
-
-      `;
-
-    }
-
-    function addMessage(text, type) {
-
-      const wrapper = document.createElement("div");
-
-      wrapper.className =
-        type === "user"
-          ? "mb-8 flex justify-end message-appear"
-          : "mb-8 flex gap-4 message-appear";
-
-      if (type === "user") {
-
-        wrapper.innerHTML = `
-
-          <div
-            class="max-w-[85%] break-words rounded-2xl bg-[#2f2f2f] px-4 py-3 text-sm leading-7"
-          >
-            ${escapeHTML(text)}
-          </div>
-
-        `;
-
-      } else {
-
-        wrapper.innerHTML = `
-
-          ${getAIAvatar()}
-
-          <div
-            class="min-w-0 max-w-[85%] break-words text-sm leading-7 text-gray-200"
-          >
-            ${escapeHTML(text)}
-          </div>
-
-        `;
-
+      if (selectedFiles.length === 0) {
+        filePreview.classList.add("hidden");
+        return;
       }
 
-      messages.appendChild(wrapper);
+      filePreview.classList.remove("hidden");
 
-      scrollToBottom();
+      selectedFiles.forEach((file, index) => {
 
-    }
+        const fileItem = document.createElement("div");
 
-    function showTyping() {
+        fileItem.className =
+          "flex max-w-xs items-center gap-3 rounded-xl border bg-gray-50 px-3 py-2";
 
-      const typing = document.createElement("div");
+        fileItem.innerHTML = `
+          <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white border">
+            📄
+          </div>
 
-      typing.id = "typing";
+          <div class="min-w-0 flex-1">
+            <p class="truncate text-sm font-medium">
+              ${escapeHTML(file.name)}
+            </p>
 
-      typing.className =
-        "mb-8 flex gap-4 message-appear";
+            <p class="text-xs text-gray-500">
+              ${formatBytes(file.size)}
+            </p>
+          </div>
 
-      typing.innerHTML = `
+          <button
+            type="button"
+            class="remove-file text-gray-400 hover:text-red-500"
+            data-index="${index}"
+          >
+            ×
+          </button>
+        `;
 
-        ${getAIAvatar()}
+        fileList.appendChild(fileItem);
+      });
 
-        <div class="typing flex items-center gap-1 pt-2">
 
-          <span>●</span>
-          <span>●</span>
-          <span>●</span>
+      document.querySelectorAll(".remove-file").forEach(button => {
 
-        </div>
+        button.addEventListener("click", () => {
 
-      `;
+          const index = Number(button.dataset.index);
 
-      messages.appendChild(typing);
+          selectedFiles.splice(index, 1);
 
-      scrollToBottom();
-
-    }
-
-    function removeTyping() {
-
-      document.getElementById("typing")?.remove();
-
-    }
-
-    function scrollToBottom() {
-
-      const chat = document.getElementById("chat");
-
-      requestAnimationFrame(() => {
-
-        chat.scrollTo({
-          top: chat.scrollHeight,
-          behavior: "smooth"
+          renderFiles();
         });
 
       });
 
     }
+
+
+    // 送信
+    chatForm.addEventListener("submit", async (event) => {
+
+      event.preventDefault();
+
+      const text = messageInput.value.trim();
+
+      if (!text && selectedFiles.length === 0) return;
+
+
+      const formData = new FormData();
+
+      formData.append("message", text);
+
+      selectedFiles.forEach(file => {
+        formData.append("files", file);
+      });
+
+
+      // UIにユーザーメッセージを追加
+      addUserMessage(text, selectedFiles);
+
+
+      /*
+        ここでAPIに送信する
+
+        例:
+
+        const response = await fetch("/api/chat", {
+          method: "POST",
+          body: formData
+        });
+
+        const data = await response.json();
+      */
+
+
+      messageInput.value = "";
+      selectedFiles = [];
+      renderFiles();
+
+
+      // 仮のAI応答
+      setTimeout(() => {
+
+        addAIMessage(
+          "ファイルを受信しました。バックエンドAPIに接続すれば、ここでAIによる解析結果を表示できます。"
+        );
+
+      }, 500);
+
+    });
+
+
+    // ユーザーメッセージ追加
+    function addUserMessage(text, files) {
+
+      const fileHTML = files.map(file => `
+        <div class="mt-2 flex items-center gap-2 rounded-lg border bg-white px-3 py-2 text-sm">
+          📄 ${escapeHTML(file.name)}
+        </div>
+      `).join("");
+
+
+      const message = document.createElement("div");
+
+      message.className =
+        "mx-auto mb-8 flex max-w-3xl gap-4";
+
+      message.innerHTML = `
+        <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-black text-sm text-white">
+          Q
+        </div>
+
+        <div class="min-w-0 flex-1">
+          <p class="mb-2 font-semibold">あなた</p>
+
+          <div class="rounded-2xl bg-gray-100 p-4">
+            ${escapeHTML(text)}
+            ${fileHTML}
+          </div>
+        </div>
+      `;
+
+      messages.appendChild(message);
+
+      scrollToBottom();
+    }
+
+
+    // AIメッセージ追加
+    function addAIMessage(text) {
+
+      const message = document.createElement("div");
+
+      message.className =
+        "mx-auto mb-8 flex max-w-3xl gap-4";
+
+      message.innerHTML = `
+        <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-sm text-white">
+          AI
+        </div>
+
+        <div class="min-w-0 flex-1">
+          <p class="mb-2 font-semibold">ChatGPT</p>
+
+          <div class="leading-7">
+            ${escapeHTML(text)}
+          </div>
+        </div>
+      `;
+
+      messages.appendChild(message);
+
+      scrollToBottom();
+    }
+
+
+    function scrollToBottom() {
+
+      messages.scrollTo({
+        top: messages.scrollHeight,
+        behavior: "smooth"
+      });
+
+    }
+
+
+    function formatBytes(bytes) {
+
+      if (bytes === 0) return "0 Bytes";
+
+      const units = ["Bytes", "KB", "MB", "GB"];
+
+      const index =
+        Math.floor(Math.log(bytes) / Math.log(1024));
+
+      return `${(bytes / Math.pow(1024, index)).toFixed(1)} ${units[index]}`;
+    }
+
 
     function escapeHTML(text) {
 
@@ -679,85 +493,8 @@
         .replaceAll("<", "&lt;")
         .replaceAll(">", "&gt;")
         .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;")
-        .replaceAll("\n", "<br>");
-
+        .replaceAll("'", "&#039;");
     }
-
-    form.addEventListener("submit", async (event) => {
-
-      event.preventDefault();
-
-      const text = input.value.trim();
-
-      if (!text || isTyping) return;
-
-      welcome.classList.add("hidden");
-
-      messages.classList.remove("hidden");
-
-      addMessage(text, "user");
-
-      input.value = "";
-
-      input.style.height = "auto";
-
-      isTyping = true;
-
-      sendButton.disabled = true;
-
-      showTyping();
-
-      await new Promise(resolve => {
-
-        setTimeout(resolve, 900);
-
-      });
-
-      removeTyping();
-
-      addMessage(
-        "これはデモ用のChatGPT風UIです。実際のAIに接続する場合は、ここにAPI通信を追加してください。",
-        "assistant"
-      );
-
-      isTyping = false;
-
-      sendButton.disabled = false;
-
-      input.focus();
-
-    });
-
-    input.addEventListener("input", () => {
-
-      input.style.height = "auto";
-
-      input.style.height =
-        Math.min(input.scrollHeight, 128) + "px";
-
-      sendButton.disabled =
-        !input.value.trim();
-
-    });
-
-    input.addEventListener("keydown", (event) => {
-
-      if (
-        event.key === "Enter" &&
-        !event.shiftKey
-      ) {
-
-        event.preventDefault();
-
-        form.requestSubmit();
-
-      }
-
-    });
-
-    sendButton.disabled = true;
-
   </script>
 
 </body>
